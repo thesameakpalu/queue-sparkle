@@ -50,10 +50,29 @@ const UserPage = () => {
     localStorage.setItem("allQueuesData", JSON.stringify(queuesData));
   }, [queuesData]);
 
-  // Format queue number with leading zeros
-  const formatQueueNumber = (num: number): string => {
-    return `Q${num.toString().padStart(3, "0")}`;
-  };
+  // Map each activity to its queue prefix
+const getActivityPrefix = (activityId: string): string => {
+  switch (activityId) {
+    case "pay-fees":
+      return "F"; // Fees
+    case "request-transcript":
+      return "T"; // Transcript
+    case "general-inquiry":
+      return "G"; // General
+    case "course-registration":
+      return "C"; // Course
+    default:
+      return "Q"; // Default prefix
+  }
+};
+
+
+  // Format queue number with leading zeros and activity prefix
+const formatQueueNumber = (activityId: string, num: number): string => {
+  const prefix = getActivityPrefix(activityId);
+  return `${prefix}${num.toString().padStart(3, "0")}`;
+};
+
 
   // Handle getting a ticket for selected activity
   const getTicket = () => {
@@ -75,7 +94,7 @@ const UserPage = () => {
 
     toast({
       title: "Ticket Issued",
-      description: `Your number is ${formatQueueNumber(newNumber)}`,
+      description: `Your number is ${formatQueueNumber(selectedActivity, newNumber)}`,
     });
   };
 
@@ -148,7 +167,7 @@ const UserPage = () => {
                       <p className="text-muted-foreground mb-2">Currently Serving</p>
                       <div className="text-5xl font-bold text-primary">
                         {currentQueue.servingNumber > 0
-                          ? formatQueueNumber(currentQueue.servingNumber)
+                          ? formatQueueNumber(selectedActivity,currentQueue.servingNumber)
                           : "---"}
                       </div>
                     </div>
@@ -200,7 +219,7 @@ const UserPage = () => {
               <div className="text-center p-8 bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg border-2 border-primary/20">
                 <p className="text-muted-foreground mb-2">Your Queue Number</p>
                 <div className="text-7xl font-bold text-primary animate-pulse-glow">
-                  {formatQueueNumber(myTicket.number)}
+                  {formatQueueNumber(selectedActivity,myTicket.number)}
                 </div>
               </div>
 
@@ -208,7 +227,7 @@ const UserPage = () => {
                 <p className="text-muted-foreground mb-2">Currently Serving</p>
                 <div className="text-4xl font-bold text-accent">
                   {queuesData[myTicket.activity].servingNumber > 0
-                    ? formatQueueNumber(queuesData[myTicket.activity].servingNumber)
+                    ? formatQueueNumber(selectedActivity,queuesData[myTicket.activity].servingNumber)
                     : "---"}
                 </div>
               </div>
