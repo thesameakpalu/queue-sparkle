@@ -36,7 +36,7 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/30 p-4 md:p-8 flex items-center justify-center">
+    <div className="min-h-screen bg-[#00205B] p-4 md:p-8 flex items-center justify-center">
       <div className="max-w-md w-full space-y-6 animate-fade-in">
         {/* Back Button */}
         <Button variant="outline" onClick={() => navigate("/")} className="mb-4">

@@ -101,8 +101,34 @@ const formatQueueNumber = (activityId: string, num: number): string => {
   const activityLabel = ACTIVITIES.find((a) => a.id === selectedActivity)?.label || "";
   const currentQueue = selectedActivity ? queuesData[selectedActivity] : null;
 
+  /// Helper to estimate realistic wait time (in actual clock time)
+const estimateWaitTime = (peopleAhead: number): string => {
+  if (peopleAhead === 0) return "Almost your turn!";
+
+  // Simulate average time per person (between 2–5 mins)
+  const avgPerPerson = Math.floor(Math.random() * 4) + 2; // random 2–5 mins per person
+  const totalMinutes = peopleAhead * avgPerPerson;
+
+  // Calculate estimated finish time
+  const now = new Date();
+  const estimatedTime = new Date(now.getTime() + totalMinutes * 60000);
+
+  // Format time nicely (e.g., 12:45 PM)
+  const formattedTime = estimatedTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+  return `${formattedTime} (${totalMinutes} mins from now)`;
+};
+
+
+const getStatusMessage = (peopleAhead: number): string => {
+  if (peopleAhead === 0) return "You're next! Please get ready.";
+  if (peopleAhead <= 3) return "Just a few people ahead of you.";
+  return "It's a busy time — please hold on.";
+};
+
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/30 p-4 md:p-8">
+    <div className="min-h-screen bg-[#00205B]  p-4 md:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Back Button */}
         <Button variant="outline" onClick={() => navigate("/")} className="mb-4">
@@ -112,7 +138,11 @@ const formatQueueNumber = (activityId: string, num: number): string => {
 
         {/* Header */}
         <div className="text-center space-y-2 animate-fade-in">
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-5xl font-bold  bg-clip-text text-transparent"
+          style={{
+              backgroundImage: "linear-gradient(to right, #FFB81C, #FFFFFF)",
+            }}
+          >
             User Queue
           </h1>
           <p className="text-muted-foreground text-lg">
@@ -165,7 +195,7 @@ const formatQueueNumber = (activityId: string, num: number): string => {
                     {/* Current Serving Display */}
                     <div className="text-center p-6 bg-secondary/50 rounded-lg">
                       <p className="text-muted-foreground mb-2">Currently Serving</p>
-                      <div className="text-5xl font-bold text-primary">
+                      <div className="text-5xl font-bold text-[#00205B]">
                         {currentQueue.servingNumber > 0
                           ? formatQueueNumber(selectedActivity,currentQueue.servingNumber)
                           : "---"}
@@ -186,7 +216,7 @@ const formatQueueNumber = (activityId: string, num: number): string => {
                     {/* Queue Stats */}
                     <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                       <span className="text-muted-foreground">People Waiting</span>
-                      <span className="text-2xl font-bold text-primary">
+                      <span className="text-2xl font-bold text-[#00205B]">
                         {currentQueue.tickets.length}
                       </span>
                     </div>
@@ -216,7 +246,7 @@ const formatQueueNumber = (activityId: string, num: number): string => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="text-center p-8 bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg border-2 border-primary/20">
+              <div className="text-center p-8 bg-gradient-to-br from-[#FFB81C]/10 to-[#b68d35]/10 rounded-lg border-2 border-[#e9a40f]/20">
                 <p className="text-muted-foreground mb-2">Your Queue Number</p>
                 <div className="text-7xl font-bold text-primary animate-pulse-glow">
                   {formatQueueNumber(selectedActivity,myTicket.number)}
@@ -225,19 +255,36 @@ const formatQueueNumber = (activityId: string, num: number): string => {
 
               <div className="text-center p-6 bg-secondary/50 rounded-lg">
                 <p className="text-muted-foreground mb-2">Currently Serving</p>
-                <div className="text-4xl font-bold text-accent">
+                <div className="text-4xl font-bold text-primary">
                   {queuesData[myTicket.activity].servingNumber > 0
                     ? formatQueueNumber(selectedActivity,queuesData[myTicket.activity].servingNumber)
                     : "---"}
                 </div>
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-                <span className="text-muted-foreground">People Ahead of You</span>
-                <span className="text-2xl font-bold text-primary">
-                  {queuesData[myTicket.activity].tickets.indexOf(myTicket.number)}
-                </span>
-              </div>
+              {/* Queue Details */}
+<div className="space-y-4 bg-muted/50 p-4 rounded-lg">
+  <div className="flex items-center justify-between">
+    <span className="text-muted-foreground">People Ahead of You</span>
+    <span className="text-2xl font-bold text-primary">
+      {queuesData[myTicket.activity].tickets.indexOf(myTicket.number)}
+    </span>
+  </div>
+
+  {/* 🕒 Estimated Waiting Time */}
+  <div className="flex items-center justify-between">
+    <span className="text-muted-foreground">Estimated Wait Time</span>
+    <span className="text-lg font-semibold text-accent">
+      {estimateWaitTime(queuesData[myTicket.activity].tickets.indexOf(myTicket.number))}
+    </span>
+  </div>
+
+  {/* 💬 Live Status Message */}
+  <div className="text-center mt-3 text-sm text-muted-foreground italic">
+    {getStatusMessage(queuesData[myTicket.activity].tickets.indexOf(myTicket.number))}
+  </div>
+</div>
+
 
               <div className="space-y-2">
                 <Button
